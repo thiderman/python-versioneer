@@ -79,7 +79,7 @@ def versions_from_vcs(tag_prefix, verbose=False):
     if stdout is None:
         return {}
     full = stdout.strip()
-    if tag.endswith("-dirty"):
-        full += "-dirty"
+    if tag.endswith("-dirty".encode("utf-8")):
+        full += "-dirty".encode("utf-8")
     return {"version": tag, "full": full}
 

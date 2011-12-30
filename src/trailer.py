@@ -95,8 +95,8 @@ def get_versions(verbose=False):
     assert versionfile_source is not None, "please set versioneer.versionfile_source"
     assert tag_prefix is not None, "please set versioneer.tag_prefix"
     assert parentdir_prefix is not None, "please set versioneer.parentdir_prefix"
-    return get_best_versions(versionfile_source, tag_prefix, parentdir_prefix,
-                             verbose=verbose)
+    return get_best_versions(versionfile_source, tag_prefix.encode("utf-8"),
+                             parentdir_prefix, verbose=verbose)
 def get_version(verbose=False):
     return get_versions(verbose).get("version", "unknown")
 
@@ -163,7 +163,8 @@ class cmd_update_files(Command):
         ipy = os.path.join(os.path.dirname(versionfile_source), "__init__.py")
         print (" creating %s" % versionfile_source)
         f = open(versionfile_source, "w")
-        f.write(LONG_VERSION_PY % {"DOLLAR": "$", "TAG_PREFIX": tag_prefix})
+        f.write(LONG_VERSION_PY % {"DOLLAR": "$",
+                                   "TAG_PREFIX": tag_prefix.encode("utf-8")})
         f.close()
         try:
             old = open(ipy, "r").read()
