@@ -72,7 +72,7 @@ def versions_from_vcs(tag_prefix, verbose=False):
         return {}
     if not stdout.startswith(tag_prefix):
         if verbose:
-            print "tag '%s' doesn't start with prefix '%s'" % (stdout, tag_prefix)
+            print ("tag '%s' doesn't start with prefix '%s'" % (stdout, tag_prefix))
         return {}
     tag = stdout[len(tag_prefix):]
     stdout = run_command([GIT, "rev-parse", "HEAD"], cwd=source_dir)
