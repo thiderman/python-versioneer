@@ -452,12 +452,16 @@ def get_best_versions(versionfile, tag_prefix, parentdir_prefix,
 
     raise NoVersionError("Unable to compute version at all")
 
+def stringify_versions(vers):
+    return dict([(k,v.decode("utf-8")) for (k,v) in vers.items()])
+
 def get_versions(verbose=False):
     assert versionfile_source is not None, "please set versioneer.versionfile_source"
     assert tag_prefix is not None, "please set versioneer.tag_prefix"
     assert parentdir_prefix is not None, "please set versioneer.parentdir_prefix"
-    return get_best_versions(versionfile_source, tag_prefix.encode("utf-8"),
+    vers = get_best_versions(versionfile_source, tag_prefix.encode("utf-8"),
                              parentdir_prefix, verbose=verbose)
+    return stringify_versions(vers)
 def get_version(verbose=False):
     return get_versions(verbose).get("version", "unknown")
 
