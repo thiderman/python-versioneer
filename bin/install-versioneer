@@ -1,40 +1,88 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+from os import getcwd
+from os.path import dirname, abspath, join, isfile, isdir
+
+VCS_MAP = {
+    'git': '.git',
+}
+
+
+def log(s):
+    print(s)
+
 
 def unquote(s):
     return s.replace("%", "%%")
+
+
 def ver(s):
     return s.replace("@VERSIONEER@", "0.8+")
 
+
+def get_vcs():
+    for vcs, path in VCS_MAP.items():
+        if isfile(path) or isdir(path):
+            log('Found vcs: {0}'.format(vcs))
+            return vcs
+
+    raise ValueError(
+        'No supported VCS entry points found in current directory. '
+        'Supported systems are: {0}'.format(', '.join(VCS_MAP))
+    )
+
+
+def get(fn):
+    target = filename(fn)
+    with open(target, "r") as fp:
+        # log('Reading {0}'.format(target))
+        return fp.read()
+
+
+def filename(fn):
+    src = join(dirname(dirname(abspath(__file__))), 'versioneer')
+    return join(src, fn)
+
+
 def create_script():
-    vcs = "git"
-    if vcs not in ("git",):
-        raise ValueError("Unhandled revision-control system '%s'" % vcs)
-    f = open("versioneer.py", "w")
-    def get(fn): return open(fn, "r").read()
-    f.write(ver(get("src/header.py")))
-    f.write('VCS = "%s"\n' % vcs)
-    f.write("IN_LONG_VERSION_PY = False\n")
-    f.write("\n\n")
-    for line in open("src/%s/long-version.py" % vcs, "r").readlines():
-        if line.startswith("#### START"):
-            f.write("LONG_VERSION_PY = '''\n")
-            f.write("IN_LONG_VERSION_PY = True\n")
-        elif line.startswith("#### SUBPROCESS_HELPER"):
-            f.write(unquote(get("src/subprocess_helper.py")))
-        elif line.startswith("#### MIDDLE"):
-            f.write(unquote(get("src/%s/middle.py" % vcs)))
-        elif line.startswith("#### PARENTDIR"):
-            f.write(unquote(get("src/parentdir.py")))
-        elif line.startswith("#### END"):
-            f.write("'''\n")
-        else:
-            f.write(ver(line))
-    f.write(get("src/subprocess_helper.py"))
-    f.write(get("src/%s/middle.py" % vcs))
-    f.write(get("src/parentdir.py"))
-    f.write(get("src/%s/install.py" % vcs))
-    f.write(ver(get("src/trailer.py")))
-    f.close()
+    vcs = get_vcs()
+    target = join(getcwd(), "versioneer.py")
+
+    if isfile(target) and False:
+        log('Already installed. Doing nothing.')
+        return
+
+    log('Building verioneer into {0}'.format(target))
+    with open(target, "w") as f:
+        f.write(ver(get("header.py")))
+        f.write('VCS = "%s"\n' % vcs)
+        f.write("IN_LONG_VERSION_PY = False\n")
+        f.write("\n\n")
+
+        with open(filename("%s/long-version.py" % vcs), "r") as fp:
+            for line in fp:
+                if line.startswith("#### START"):
+                    f.write("LONG_VERSION_PY = '''\n")
+                    f.write("IN_LONG_VERSION_PY = True\n")
+                elif line.startswith("#### SUBPROCESS_HELPER"):
+                    f.write(unquote(get("subprocess_helper.py")))
+                elif line.startswith("#### MIDDLE"):
+                    f.write(unquote(get("%s/middle.py" % vcs)))
+                elif line.startswith("#### PARENTDIR"):
+                    f.write(unquote(get("parentdir.py")))
+                elif line.startswith("#### END"):
+                    f.write("'''\n")
+                else:
+                    f.write(ver(line))
+
+        f.write(get("subprocess_helper.py"))
+        f.write(get("%s/middle.py" % vcs))
+        f.write(get("parentdir.py"))
+        f.write(get("%s/install.py" % vcs))
+        f.write(ver(get("trailer.py")))
+
+    log('Done.')
 
 if __name__ == '__main__':
     create_script()
-
